@@ -110,3 +110,81 @@ WHERE salary < (SELECT MAX(salary) FROM employees);
 SELECT dept, COUNT(*) FROM employees
 GROUP BY dept HAVING COUNT(*) > 5;
 ```
+
+
+## 10 Classic SQL Query Interview Questions and Answers
+
+### Q1: What is the difference between ROW_NUMBER(), RANK(), and DENSE_RANK()? Provide an example.
+* **ROW_NUMBER():** Assigns a unique sequential integer to rows, breaking ties randomly if values match.
+* **RANK():** Assigns the same rank to identical values, but skips numbers for subsequent ranks (e.g., 1, 2, 2, 4).
+* **DENSE_RANK():** Assigns the same rank to identical values without skipping any numbers (e.g., 1, 2, 2, 3).
+```sql
+SELECT employee_id, salary,
+       ROW_NUMBER() OVER (ORDER BY salary DESC) as row_num,
+       RANK() OVER (ORDER BY salary DESC) as rnk,
+       DENSE_RANK() OVER (ORDER BY salary DESC) as dense_rnk
+FROM Employee;
+```
+
+### Q2: How do you identify a performance bottleneck in a slow-running SQL query, and how would you fix it?
+* **Identification:** Use the `EXPLAIN` or `EXPLAIN ANALYZE` commands before the query to inspect the database execution plan and look for expensive sequential scans (Full Table Scans).
+* **Optimization:** Add indexes to columns heavily utilized in `WHERE` filtering or `JOIN` conditions, replace resource-heavy subqueries with `WITH` clauses (CTEs), and ensure you are only pulling necessary columns instead of using `SELECT *`.
+
+### Q3: What is the difference between INNER JOIN and LEFT JOIN?
+* **INNER JOIN:** Returns records that have matching values in both tables.
+* **LEFT JOIN:** Returns all records from the left table, and the matched records from the right table. If no match, returns NULL values for the right table.
+
+### Q4: How do you delete duplicate records from a table while keeping the original?
+```sql
+DELETE FROM Employee 
+WHERE id NOT IN (
+    SELECT MIN(id) 
+    FROM Employee 
+    GROUP BY email
+);
+```
+
+### Q5: Write a query to find employees who earn more than their managers.
+```sql
+SELECT e.name AS Employee
+FROM Employee e
+JOIN Employee m ON e.manager_id = m.id
+WHERE e.salary > m.salary;
+```
+
+### Q6: How do you select all records where a name starts with the letter 'A'?
+```sql
+SELECT * FROM customers 
+WHERE customer_name LIKE 'A%';
+```
+
+### Q7: What is the difference between WHERE and HAVING clauses?
+* **WHERE:** Filters individual rows *before* any grouping (GROUP BY) takes place.
+* **HAVING:** Filters summarized group data *after* the GROUP BY clause has been applied.
+
+### Q8: How do you get the current date and time in SQL?
+```sql
+-- In PostgreSQL / MySQL:
+SELECT NOW();
+
+-- In SQL Server:
+SELECT GETDATE();
+```
+
+### Q9: Write a query to get the Nth highest salary using a Window Function.
+```sql
+WITH RankedSalaries AS (
+    SELECT salary, 
+           DENSE_RANK() OVER (ORDER BY salary DESC) as rank_num
+    FROM Employee
+)
+SELECT salary 
+FROM RankedSalaries 
+WHERE rank_num = 2; -- Change 2 to N for any position
+```
+
+### Q10: How do you find rows that contain NULL values in a specific column?
+```sql
+SELECT * FROM orders 
+WHERE shipping_date IS NULL;
+```
